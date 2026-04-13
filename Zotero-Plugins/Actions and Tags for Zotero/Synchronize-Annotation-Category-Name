@@ -1,0 +1,122 @@
+// 自动同步注释类别名称 Synchronize Annotation Category Name
+
+// 无 自定义脚本
+
+// Actions & Tags 在菜单触发时，可能会对每个 item 和 collection 都各跑一次。
+// 这里跳过菜单触发下的逐 item 重复调用。
+if (item) {
+  if (triggerType === "menu") {
+    return;
+  }
+  items = [item];
+}
+
+// 颜色 -> tag 映射
+const replaceLabelMap = {
+  "#ffd400": "🌟 核心贡献与创新点",      // 黄色 Yellow：核心贡献，像“高亮重点”
+  "#ff6666": "⚠️ 问题界定与核心痛点",    // 红色 Red：痛点、问题、风险，最符合直觉
+  "#5fb236": "🧩 案例理解与直观示例",    // 绿色 Green：案例示例，偏“理解、说明、辅助”
+  "#2ea8e5": "🛠️ 方法机制与实现路径",    // 蓝色 Blue：方法路径，偏理性、结构化
+  "#a28ae5": "🧪 前提假设与实验条件",    // 紫色 Purple：假设和实验条件，适合“前提、约束、设定”
+  "#e56eee": "🧭 领域范式与通用表述",    // 洋红色 Magenta：领域通用表述，适合放背景性、范式性内容
+  "#f19837": "📚 术语概念与关键生词",    // 橙色 Orange：生词术语，醒目但不如红色强警示
+  "#aaaaaa": "❓ 疑点难点与待澄清问题",   // 灰色 Grey：没理解的地方，表示“待处理、未定”
+};
+
+// 需要识别并删除的旧 tag
+const ALL_COLOR_TAGS_SET = new Set([
+  ...Object.values(COLOR_TAGS),
+  "#Yellow",
+  "#Red",
+  "#Green",
+  "#Blue",
+  "#Purple",
+  "#Magenta",
+  "#Orange",
+  "#Grey",
+  "#核心",
+  "#方法",
+  "#结果",
+  "#引用",
+]);
+
+if (items?.length > 0) {
+  let taggedCount = 0;
+  let removedCount = 0;
+  const toSave = [];
+
+  for (const selectedItem of items) {
+    let annotations = [];
+
+    if (selectedItem.isAnnotation()) {
+      annotations = [selectedItem];
+    } else if (selectedItem.isFileAttachment()) {
+      annotations = selectedItem.getAnnotations();
+    } else if (selectedItem.isAttachment()) {
+      continue; // 非文件附件没有 annotation
+    } else {
+      // 普通文献条目：收集其所有 PDF/file 附件下的 annotation
+      const attachmentIDs = selectedItem.getAttachments();
+      const attachments = attachmentIDs
+        .map(id => Zotero.Items.get(id))
+        .filter(a => a.isFileAttachment());
+
+      for (const attachment of attachments) {
+        annotations = annotations.concat(attachment.getAnnotations());
+      }
+    }
+
+    for (const annot of annotations) {
+      const currentColor = annot.annotationColor;
+      const correctTag = COLOR_TAGS[currentColor];
+      const currentTags = annot.getTags();
+      let needsSave = false;
+
+      // 删除不匹配当前颜色的旧颜色 tag
+      for (const tag of currentTags) {
+        if (ALL_COLOR_TAGS_SET.has(tag.tag) && tag.tag !== correctTag) {
+          annot.removeTag(tag.tag);
+          needsSave = true;
+          removedCount++;
+        }
+      }
+
+      // 补上当前颜色对应的正确 tag
+      if (correctTag && !currentTags.some(t => t.tag === correctTag)) {
+        annot.addTag(correctTag);
+        needsSave = true;
+        taggedCount++;
+      }
+
+      if (needsSave) {
+        toSave.push({ annot, originalDateModified: annot.dateModified });
+      }
+    }
+  }
+
+  // 批量保存，并恢复原来的 dateModified
+  if (toSave.length > 0) {
+    await Zotero.DB.executeTransaction(async () => {
+      for (const { annot, originalDateModified } of toSave) {
+        await annot.save();
+        await Zotero.DB.queryAsync(
+          "UPDATE items SET dateModified = ? WHERE itemID = ?",
+          [originalDateModified, annot.id]
+        );
+        annot.dateModified = originalDateModified;
+      }
+    });
+  }
+
+  if (removedCount > 0 && taggedCount > 0) {
+    return `已更新批注：新增 ${taggedCount} 个颜色标签，移除 ${removedCount} 个旧标签。`;
+  } else if (taggedCount > 0) {
+    return `已按颜色为 ${taggedCount} 个批注打标签。`;
+  } else if (removedCount > 0) {
+    return `已移除 ${removedCount} 个过时颜色标签。`;
+  } else {
+    return `无需更新。`;
+  }
+}
+
+return "未检测到可处理项目。";
