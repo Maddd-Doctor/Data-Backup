@@ -1,5 +1,8 @@
+// 自定义 Zotero Reader 里的注释名称 Annotation-Category-Name
+
+// 主窗口加载 自定义脚本
+
 /**
- * 自定义 Zotero Reader 里的注释名称
  * 用途：
  * 1. 右键批注颜色菜单显示自定义名称
  * 2. 顶部颜色菜单显示自定义名称
@@ -10,8 +13,6 @@
  * - #211 Customize color labels of reader
  * - 2024-09 的增强版本（支持 selection popup 和 sidebar）
  */
-
-// 主窗口加载 自定义脚本
 
 const replaceLabelMap = {
   "#ffd400": "🌟 核心贡献与创新点",      // 黄色 Yellow：核心贡献
