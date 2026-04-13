@@ -1,0 +1,108 @@
+/**
+ * 自定义 Zotero Reader 里的注释名称
+ * 用途：
+ * 1. 右键批注颜色菜单显示自定义名称
+ * 2. 顶部颜色菜单显示自定义名称
+ * 3. 选中文字后的颜色按钮 title 显示自定义名称
+ * 4. 左侧侧边栏底部颜色筛选显示自定义名称
+ *
+ * 基于：
+ * - #211 Customize color labels of reader
+ * - 2024-09 的增强版本（支持 selection popup 和 sidebar）
+ */
+
+// 主窗口加载 自定义脚本
+
+const replaceLabelMap = {
+  "#ffd400": "🌟 核心贡献与创新点",      // 黄色 Yellow：核心贡献
+  "#ff6666": "⚠️ 问题界定与核心痛点",    // 红色 Red：痛点、问题、风险
+  "#5fb236": "🧩 案例理解与直观示例",    // 绿色 Green：案例示例
+  "#2ea8e5": "🛠️ 方法机制与实现路径",    // 蓝色 Blue：方法路径
+  "#a28ae5": "🧪 前提假设与实验条件",    // 紫色 Purple：假设和实验条件
+  "#e56eee": "🧭 领域范式与通用表述",    // 洋红色 Magenta：领域通用表述
+  "#f19837": "📚 术语概念与关键生词",    // 橙色 Orange：生词术语
+  "#aaaaaa": "❓ 疑点难点与待澄清问题",   // 灰色 Grey：没理解的地方
+};
+
+function hackContextMenuLabel(event) {
+  setTimeout(() => {
+    if (event.reader._iframeWindow?.document.querySelector(".context-menu")) {
+      event.reader._iframeWindow?.document
+        .querySelectorAll(".context-menu .row")
+        .forEach((e) => {
+          const color = e.querySelector("path[fill]")?.getAttribute("fill");
+          if (!color) return;
+          if (color in replaceLabelMap) {
+            e.innerHTML =
+              e.querySelector("svg")?.outerHTML + "&nbsp;" + replaceLabelMap[color];
+          }
+        });
+    }
+  }, 10);
+}
+
+function hackTextSelectionPopup(event) {
+  setTimeout(() => {
+    const popup = event.reader._iframeWindow?.document.querySelector(".selection-popup");
+    if (popup) {
+      popup.querySelectorAll(".toolbar-button.color-button").forEach((button) => {
+        const svgElement = button.querySelector("path[fill]");
+        if (svgElement) {
+          const color = svgElement.getAttribute("fill");
+          if (color && replaceLabelMap[color]) {
+            button.setAttribute("title", replaceLabelMap[color]);
+          }
+        }
+      });
+    }
+  }, 10);
+}
+
+function hackSidebarAnnotationHeader(event) {
+  setTimeout(() => {
+    const selectorMenu = event.reader._iframeWindow?.document.querySelector(".selector");
+    if (selectorMenu) {
+      selectorMenu.querySelectorAll(".color").forEach((button) => {
+        const svgElement = button.querySelector("path[fill]");
+        if (svgElement) {
+          const color = svgElement.getAttribute("fill");
+          if (color && replaceLabelMap[color]) {
+            button.setAttribute("title", replaceLabelMap[color]);
+            button.innerHTML =
+              svgElement.closest("svg")?.outerHTML + "&nbsp;" + replaceLabelMap[color];
+          }
+        }
+      });
+    }
+  }, 10);
+}
+
+// 左侧批注右键菜单
+Zotero.Reader.registerEventListener(
+  "createAnnotationContextMenu",
+  hackContextMenuLabel,
+  "zoterotag@euclpts.com"
+);
+
+// 顶部颜色选择菜单
+Zotero.Reader.registerEventListener(
+  "createColorContextMenu",
+  hackContextMenuLabel,
+  "zoterotag@euclpts.com"
+);
+
+// 选中文字后的弹出颜色条
+Zotero.Reader.registerEventListener(
+  "renderTextSelectionPopup",
+  hackTextSelectionPopup,
+  "zoterotag@euclpts.com"
+);
+
+// 左侧侧边栏底部颜色筛选
+Zotero.Reader.registerEventListener(
+  "renderSidebarAnnotationHeader",
+  hackSidebarAnnotationHeader,
+  "zoterotag@euclpts.com"
+);
+
+return "颜色标签自定义已加载。";
