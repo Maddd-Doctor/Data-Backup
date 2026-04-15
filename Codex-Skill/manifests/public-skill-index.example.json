@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "updated": "2026-04-15",
+  "notes": "Public index example. Do not include private paths, login materials, or third-party skill source files here.",
+  "skills": [
+    {
+      "name": "slides",
+      "category": "content-media",
+      "trigger_mode": ["agent-auto", "manual"],
+      "source": {
+        "type": "public-repo-or-installer",
+        "url": "https://github.com/openai/skills",
+        "path": "skills/.curated/<skill-name>",
+        "ref": "main",
+        "license": "see source skill directory"
+      },
+      "rebuild": {
+        "method": "skill-installer",
+        "command": "scripts/install-skill-from-github.py --repo openai/skills --path skills/.curated/<skill-name>"
+      },
+      "notes": "Replace <skill-name> with the exact upstream path when known."
+    },
+    {
+      "name": "arming-thought",
+      "category": "qiushi-methods",
+      "trigger_mode": ["top-level-auto", "manual"],
+      "source": {
+        "type": "custom",
+        "url": null,
+        "path": null,
+        "ref": null,
+        "license": "define when publishing"
+      },
+      "rebuild": {
+        "method": "manual-create",
+        "command": "Create a skill folder with SKILL.md using skill-creator guidance."
+      },
+      "notes": "Public index records metadata only; do not include full custom skill body unless intentionally publishing it."
+    },
+    {
+      "name": "openai-docs",
+      "category": "codex-platform",
+      "trigger_mode": ["agent-auto", "manual"],
+      "source": {
+        "type": "codex-system",
+        "url": "https://developers.openai.com/codex/skills",
+        "path": ".system/openai-docs",
+        "ref": "bundled-with-codex",
+        "license": "bundled system skill"
+      },
+      "rebuild": {
+        "method": "install-codex",
+        "command": "Install or update Codex; system skills are bundled."
+      },
+      "notes": "No separate manual installation is normally required."
+    }
+  ]
+}
