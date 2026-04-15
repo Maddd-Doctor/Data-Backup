@@ -50,8 +50,11 @@ repository 级 skills 通常放在项目内：
 | Skill | 额外依赖 | 重建检查 |
 |---|---|---|
 | `web-access` | Node.js 22+、Chrome remote debugging、CDP Proxy、本地浏览器权限 | 安装后运行 skill 自带依赖检查脚本；确认 Chrome 已允许 remote debugging；使用真实浏览器登录态前提醒账号风控风险 |
+| `caveman` 系列 | 无特殊运行时；可选 Codex plugin 集成 | skill 版本用 `npx skills add JuliusBrussee/caveman --yes --global` 安装；plugin 版本需 Codex 插件市场识别本地 `marketplace.json` |
 
 `web-access` 的完整浏览器模式会连接本机 Chrome，并可能使用已有登录态操作网页。只在可信设备和可信 Agent 环境中启用，不要把 CDP 调试端口暴露给不可信网络。
+
+`caveman` 仓库同时提供 Codex plugin 和多个 skill。跨设备重建时，Codex app 优先安装 skill 版本；如果在支持插件市场的 IDE 环境中使用，再按仓库 README 安装 plugin。
 
 ## 使用 `skill-installer`
 

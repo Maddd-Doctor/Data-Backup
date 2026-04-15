@@ -9,6 +9,7 @@
 |---|---|---|
 | 求是 / 思想武器 skill | `arming-thought`、`investigation-first`、`contradiction-analysis`、`practice-cognition`、`mass-line`、`criticism-self-criticism`、`protracted-strategy`、`concentrate-forces`、`spark-prairie-fire`、`overall-planning`、`workflows` | 决策、调查、取舍、复盘、长期推进等通用方法论 |
 | 联网与浏览器访问 skill | `web-access` | 搜索、网页抓取、登录后页面、动态页面和真实浏览器交互 |
+| 表达压缩与辅助工作流 skill | `caveman`、`caveman-compress`、`caveman-commit`、`caveman-help`、`caveman-review` | 压缩表达、压缩上下文、提交信息、帮助说明和 review 风格辅助 |
 | 内容与媒介生成 skill | `slides`、`research-paper-writing`、`imagegen` | 制作演示文稿、改进学术论文、生成或编辑位图图像 |
 | OpenAI / Codex 平台 skill | `openai-docs`、`plugin-creator`、`skill-creator`、`skill-installer` | 查询 OpenAI 官方文档、创建插件、创建或安装 skill |
 
@@ -39,6 +40,18 @@
 | Skill | 含义说明 | 触发方式 | 开源地址 |
 |---|---|---|---|
 | `web-access` | 为 Agent 提供联网访问决策框架和真实浏览器 CDP 操作能力，覆盖搜索、抓取、登录后页面、动态页面、点击、截图和网页交互 | Agent 自动判断；强制手动 | [eze-is/web-access](https://github.com/eze-is/web-access) |
+
+## 表达压缩与辅助工作流 Skill
+
+复现方式：让 Agent 使用 `npx skills add JuliusBrussee/caveman --yes --global` 安装；该仓库会一次安装 5 个相关 skills。Codex plugin 方式可提供更完整集成，但 Codex app 端优先使用 skill 版本作为通用方案。
+
+| Skill | 含义说明 | 触发方式 | 开源地址 |
+|---|---|---|---|
+| `caveman` | 以“caveman mode”进行极简但保留技术准确性的表达压缩，支持多种强度和文言压缩模式 | Agent 自动判断；强制手动 | [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) |
+| `caveman-compress` | 压缩上下文或文本，减少上下文用量 | Agent 自动判断；强制手动 | [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) |
+| `caveman-commit` | 生成或辅助压缩提交信息 | Agent 自动判断；强制手动 | [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) |
+| `caveman-help` | 提供 caveman 系列用法说明 | Agent 自动判断；强制手动 | [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) |
+| `caveman-review` | 以压缩风格辅助代码 review 或审查输出 | Agent 自动判断；强制手动 | [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) |
 
 ## 内容与媒介生成 Skill
 
