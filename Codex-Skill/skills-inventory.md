@@ -8,6 +8,7 @@
 | 大类 | 包含 skill | 用途 |
 |---|---|---|
 | 求是 / 思想武器 skill | `arming-thought`、`investigation-first`、`contradiction-analysis`、`practice-cognition`、`mass-line`、`criticism-self-criticism`、`protracted-strategy`、`concentrate-forces`、`spark-prairie-fire`、`overall-planning`、`workflows` | 决策、调查、取舍、复盘、长期推进等通用方法论 |
+| 联网与浏览器访问 skill | `web-access` | 搜索、网页抓取、登录后页面、动态页面和真实浏览器交互 |
 | 内容与媒介生成 skill | `slides`、`research-paper-writing`、`imagegen` | 制作演示文稿、改进学术论文、生成或编辑位图图像 |
 | OpenAI / Codex 平台 skill | `openai-docs`、`plugin-creator`、`skill-creator`、`skill-installer` | 查询 OpenAI 官方文档、创建插件、创建或安装 skill |
 
@@ -30,6 +31,14 @@
 | `spark-prairie-fire` | 星火燎原：从零起步时找到最小可行切入口，先建立稳定根据地 | Agent 自动判断；强制手动 | [skills/spark-prairie-fire](https://github.com/HughYau/qiushi-skill/tree/main/skills/spark-prairie-fire) |
 | `overall-planning` | 统筹兼顾：在多个目标、利益方和系统约束之间动态平衡 | Agent 自动判断；强制手动 | [skills/overall-planning](https://github.com/HughYau/qiushi-skill/tree/main/skills/overall-planning) |
 | `workflows` | 工作流组合：当任务需要多个思想武器串联时，选择标准化跨 skill 流程 | Agent 自动判断；强制手动；联动调度 | [skills/workflows](https://github.com/HughYau/qiushi-skill/tree/main/skills/workflows) |
+
+## 联网与浏览器访问 Skill
+
+复现方式：让 Agent 使用 `npx skills add eze-is/web-access --yes --global` 安装到用户级 skills 目录；如果安装器不可用，则从开源地址复制 `web-access` skill 目录。该 skill 需要额外运行环境，重建时必须检查 Node.js、Chrome CDP 和本地 proxy。
+
+| Skill | 含义说明 | 触发方式 | 开源地址 |
+|---|---|---|---|
+| `web-access` | 为 Agent 提供联网访问决策框架和真实浏览器 CDP 操作能力，覆盖搜索、抓取、登录后页面、动态页面、点击、截图和网页交互 | Agent 自动判断；强制手动 | [eze-is/web-access](https://github.com/eze-is/web-access) |
 
 ## 内容与媒介生成 Skill
 

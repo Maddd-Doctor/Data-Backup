@@ -2,7 +2,7 @@
 
 本文档说明如何在新设备上根据公开来源重建 Codex skill 环境。这里不包含第三方 skill 的完整内容，只记录可复现流程。
 
-## 目标位置
+## 目标位置与迁移策略
 
 Codex 当前公开文档推荐的常见位置：
 
@@ -24,6 +24,16 @@ repository 级 skills 通常放在项目内：
 
 如果不确定使用哪个位置，优先查看当前 Codex 版本的官方文档和本机配置。
 
+重建设备时，优先同步到当时 Codex 官方推荐的位置。当前推荐策略是：
+
+| 场景 | 优先位置 | 说明 |
+|---|---|---|
+| 用户级通用 skills | `$HOME/.agents/skills` | 新安装和跨项目复用优先使用这里 |
+| 项目专用 skills | `.agents/skills` | 只服务当前仓库的 skill 放在项目内 |
+| 旧环境兼容 | `$CODEX_HOME/skills` | 仅作为已有 skill 的读取或迁移来源，不作为新安装首选 |
+
+如果旧目录中已有 skill，让 Agent 先列出新旧目录清单并按名称、来源、版本对比，再决定重新从开源地址安装、迁移，或保留兼容副本。不要直接覆盖已有目录。
+
 ## 推荐重建顺序
 
 1. 安装或更新 Codex，确认 `.system` skills 已随 Codex 提供。
@@ -32,6 +42,16 @@ repository 级 skills 通常放在项目内：
 4. 对自定义 skills，使用 `skill-creator` 创建同名 skill，再补充必要的 `SKILL.md`、`references/`、`scripts/` 或 `assets/`。
 5. 安装完成后重启 Codex，确保新的 skills 被加载。
 6. 让 Codex 读取可用 skill 列表，确认名称、触发说明和分类与清单一致。
+
+## 需要额外配置的 Skill
+
+部分 skill 不是单纯复制目录即可完整启用，还依赖本地运行环境。重建时应在安装后执行前置检查，并把风险提示展示给用户。
+
+| Skill | 额外依赖 | 重建检查 |
+|---|---|---|
+| `web-access` | Node.js 22+、Chrome remote debugging、CDP Proxy、本地浏览器权限 | 安装后运行 skill 自带依赖检查脚本；确认 Chrome 已允许 remote debugging；使用真实浏览器登录态前提醒账号风控风险 |
+
+`web-access` 的完整浏览器模式会连接本机 Chrome，并可能使用已有登录态操作网页。只在可信设备和可信 Agent 环境中启用，不要把 CDP 调试端口暴露给不可信网络。
 
 ## 使用 `skill-installer`
 
