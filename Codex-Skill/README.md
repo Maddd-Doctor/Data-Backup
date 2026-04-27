@@ -1,6 +1,12 @@
-# Codex Skill 索引与重建说明
+# Codex Skills 与 MCP 索引
 
-这个目录用于记录 Codex skills 的公开索引、分类说明和重建方法。目标是让一台新设备能够根据公开来源手动复现相同的 skill 环境，同时避免在公开仓库中提交第三方 skill 的完整内容、个人路径或本机私有配置。
+本目录用于公开记录 Codex 环境中的可重建能力单元，重点包括：
+
+- `skill` 的分类、用途、触发方式和公开来源
+- `MCP` 工具的作用、依赖和重建方法
+- 面向 Agent 的统一重建说明
+
+目标是让新设备上的 Agent 优先根据公开来源自动重建环境，同时让人工读者也能快速看懂。公开仓库只保存索引、说明和步骤，不保存第三方完整内容、私有配置或个人信息。
 
 ## 文件结构
 
@@ -8,6 +14,7 @@
 Codex-Skill/
 ├── README.md
 ├── skills-inventory.md
+├── mcp-inventory.md
 ├── rebuild-guide.md
 └── manifests/
     └── public-skill-index.example.json
@@ -15,61 +22,38 @@ Codex-Skill/
 
 | 文件 | 用途 |
 |---|---|
-| `README.md` | 说明本目录的边界、公开分享原则和维护方式 |
-| `skills-inventory.md` | 记录已使用 skill 的分类、含义、触发方式和来源 |
-| `rebuild-guide.md` | 说明如何在新设备上根据公开来源重新安装或创建 skills |
-| `manifests/public-skill-index.example.json` | 给出机器可读索引的示例结构，便于后续自动化 |
+| `README.md` | 说明本目录边界、术语区分和维护规则 |
+| `skills-inventory.md` | 记录已使用 skills 的分类、用途、触发方式和公开来源 |
+| `mcp-inventory.md` | 记录已接入 MCP 的用途、依赖、触发方式和公开来源 |
+| `rebuild-guide.md` | 给 Agent 和人工读者的统一重建步骤 |
+| `manifests/public-skill-index.example.json` | 机器可读索引示例 |
+
+## 术语区分
+
+| 类型 | 定义 | 常见形式 |
+|---|---|---|
+| `skill` | Codex 在合适场景下调用的一组指令 | 一个包含 `SKILL.md` 的目录 |
+| `plugin` | 打包分发的一组能力，可能同时包含多个 skills、MCP 或其他集成 | `.codex-plugin/plugin.json` |
+| `MCP` | 供 Codex 通过协议调用的外部工具服务 | `stdio` / `streamable-http` server |
 
 ## 公开仓库边界
 
-本目录适合公开保存：
-
 | 可以保存 | 不应保存 |
 |---|---|
-| skill 名称、分类、用途、触发方式 | 第三方 `SKILL.md` 全文 |
-| 公开来源 URL、仓库、commit/tag、许可信息 | 第三方脚本、模板、图片、完整资源包 |
-| 手动安装或重建步骤 | 凭据、访问令牌、私有配置、本机绝对路径 |
-| 对不同 skill 的使用经验和注意事项 | 设备用户名、机器名、非公开地址 |
+| skill 或 MCP 名称、分类、用途、触发方式 | 第三方 `SKILL.md` 全文或插件完整内容 |
+| 公开来源 URL、仓库、版本、许可信息 | 私有脚本、完整资源包、内部配置 |
+| 手动或 Agent 可执行的重建步骤 | 用户名、设备名、绝对本机路径、内网地址 |
+| 使用经验、注意事项、兼容性说明 | token、cookie、API key、登录态 |
 
-如果某个 skill 来自第三方项目，公开文档只记录来源和复现方式。是否允许复制、修改或再分发，应以该 skill 原目录中的 license 文件为准。
+## 维护规则
 
-## Skill 触发方式
+1. 新增 skill 时，更新 `skills-inventory.md`；如果安装方式或运行前提特殊，同时更新 `rebuild-guide.md`。
+2. 新增 MCP 时，更新 `mcp-inventory.md`；如果需要额外依赖、索引、启动顺序或验证步骤，同时更新 `rebuild-guide.md`。
+3. 文档中只使用通用路径写法，例如 `$HOME/.agents/skills`、`.agents/skills`、`$HOME/.config/...`，不要记录本机专属路径。
+4. 公开文档只写“别人或 Agent 如何复现”，不要写“当前机器上的隐私细节”。
 
-Codex skill 的触发主要由 `SKILL.md` 的 YAML front matter 决定，尤其是 `name` 与 `description`。
+## 推荐阅读顺序
 
-| 触发方式 | 含义 | 使用场景 |
-|---|---|---|
-| 顶层自动 | 每次新的顶层对话开始时自动适用，不需要用户点名 | 例如方法论路由、全局工作原则 |
-| 强制手动 | 用户明确点名 skill，例如 `$skill-creator`、`skill-creator` 或直接要求使用某个 skill | 用户已经知道需要哪个能力 |
-| Agent 自动判断 | 用户没有点名，但任务与某个 skill 的 `description` 明确匹配 | 由 Agent 根据任务上下文判断并加载对应 skill |
-| 联动调度 | 一个路由型或流程型 skill 决定是否继续调用其他 skill | 例如组合多个方法或工具完成复杂任务 |
-
-## 目录组织建议
-
-当前 Codex 公开文档说明：一个 skill 是一个包含 `SKILL.md` 的目录，`SKILL.md` 必须包含 `name` 和 `description`。Codex 会从 repository、user、admin、system 等多个位置读取 skills；repository 范围推荐使用 `.agents/skills`，用户范围推荐使用 `$HOME/.agents/skills`，旧版 `$CODEX_HOME/skills` 仍可作为兼容路径使用。
-
-从当前 `openai/codex` 源码看，Codex 会在 skill root 下递归扫描 `SKILL.md`，扫描深度上限为 6，并会跳过以 `.` 开头的普通子目录。因此，分类目录下继续放多个独立 skill 在机制上可以被发现。
-
-实践上更推荐：
-
-| 方案 | 建议 | 说明 |
-|---|---|---|
-| 多个独立 skill 在 skill root 下并列 | 推荐 | 安装器、文档示例和人工维护都更直观 |
-| 在索引文档中把多个 skill 合并为一个大类 | 推荐 | 保留独立触发边界，同时方便理解和分享 |
-| 创建一个大 skill，并把子方法放入 `references/` | 适合强绑定子系列 | 适合统一路由，但子方法不再是独立 skill |
-| 使用插件分发多个相关 skill | 适合对外打包分发 | 当需要同时分发多个 skill、MCP 或 app 集成时更合适 |
-| 仅为了分类移动到深层目录 | 谨慎 | 当前可被发现，但可能不符合安装器和第三方工具的默认假设 |
-
-## 维护原则
-
-新增或调整 skill 记录时，优先更新 [skills-inventory.md](./skills-inventory.md)。如果新增来源或安装方式，再同步更新 [rebuild-guide.md](./rebuild-guide.md) 和 manifest 示例。
-
-公开文档中的路径应使用通用写法，例如：
-
-```text
-$HOME/.agents/skills
-$CODEX_HOME/skills
-.agents/skills
-```
-
-不要提交个人用户名、盘符绝对路径、设备名、非公开地址或任何凭据。
+1. 先看 `README.md`，理解公开仓库边界和术语。
+2. 再看 `skills-inventory.md` 和 `mcp-inventory.md`，确认需要重建哪些能力。
+3. 最后看 `rebuild-guide.md`，按统一流程恢复。

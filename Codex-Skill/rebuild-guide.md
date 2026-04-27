@@ -1,8 +1,8 @@
-# Codex Skill 重建指南
+# Codex 环境重建指南
 
-本文档说明如何在新设备上根据公开来源重建 Codex skill 环境。这里不包含第三方 skill 的完整内容，只记录可复现流程。
+本文档说明如何在新设备上根据公开来源重建 Codex 的 skills 与 MCP 环境。默认假设优先由 Agent 执行，人工只在安装软件、重启应用或确认权限时介入。
 
-## 目标位置与迁移策略
+## 1. Skills 默认位置
 
 Codex 当前公开文档推荐的常见位置：
 
@@ -10,71 +10,107 @@ Codex 当前公开文档推荐的常见位置：
 $HOME/.agents/skills
 ```
 
-兼容旧环境或既有安装时，也可能使用：
+兼容旧环境时，也可能读到：
 
 ```text
 $CODEX_HOME/skills
 ```
 
-repository 级 skills 通常放在项目内：
+项目专用 skills 通常放在仓库内：
 
 ```text
 .agents/skills
 ```
 
-如果不确定使用哪个位置，优先查看当前 Codex 版本的官方文档和本机配置。
-
-重建设备时，优先同步到当时 Codex 官方推荐的位置。当前推荐策略是：
+### 重建策略
 
 | 场景 | 优先位置 | 说明 |
 |---|---|---|
-| 用户级通用 skills | `$HOME/.agents/skills` | 新安装和跨项目复用优先使用这里 |
-| 项目专用 skills | `.agents/skills` | 只服务当前仓库的 skill 放在项目内 |
-| 旧环境兼容 | `$CODEX_HOME/skills` | 仅作为已有 skill 的读取或迁移来源，不作为新安装首选 |
+| 用户级通用 skills | `$HOME/.agents/skills` | 新设备和跨项目复用优先使用这里 |
+| 项目专用 skills | `.agents/skills` | 仅服务当前仓库 |
+| 旧环境兼容 | `$CODEX_HOME/skills` | 只作为读取或迁移来源，不作为新安装首选 |
 
-如果旧目录中已有 skill，让 Agent 先列出新旧目录清单并按名称、来源、版本对比，再决定重新从开源地址安装、迁移，或保留兼容副本。不要直接覆盖已有目录。
+## 2. Skills 重建顺序
 
-## 推荐重建顺序
+1. 安装或更新 Codex，并确认系统内置 skills 已随版本提供。
+2. 读取 `skills-inventory.md`，确认需要恢复的 skills。
+3. 对公开来源的 skills，优先从原始仓库按指定 repo、path、commit 或 tag 安装。
+4. 对自定义 skills，重建同名目录和最小 `SKILL.md` 结构，再补充 `references/`、`scripts/` 或 `assets/`。
+5. 安装完成后重启 Codex，让新 skills 被重新扫描。
+6. 让 Agent 复核可见 skill 列表，确认名称、触发方式和分类一致。
 
-1. 安装或更新 Codex，确认 `.system` skills 已随 Codex 提供。
-2. 根据 [skills-inventory.md](./skills-inventory.md) 逐项确认需要的 skills。
-3. 对公开来源的 skills，优先从原始来源按指定 repo、path、commit 或 tag 安装。
-4. 对自定义 skills，使用 `skill-creator` 创建同名 skill，再补充必要的 `SKILL.md`、`references/`、`scripts/` 或 `assets/`。
-5. 安装完成后重启 Codex，确保新的 skills 被加载。
-6. 让 Codex 读取可用 skill 列表，确认名称、触发说明和分类与清单一致。
+## 3. MCP 重建顺序
 
-## 需要额外配置的 Skill
+1. 先安装运行时，例如 Python、Node.js 或对应二进制。
+2. 按 `mcp-inventory.md` 安装 MCP server 本体。
+3. 在 Codex 配置中添加对应 `mcp_servers.<name>` 配置。
+4. 如需本地桌面程序配合，先确认该程序已安装并能正常启动。
+5. 重启 Codex，使新的 MCP server 被加载。
+6. 让 Agent 做一次真实调用验证，而不是只检查配置文件是否存在。
 
-部分 skill 不是单纯复制目录即可完整启用，还依赖本地运行环境。重建时应在安装后执行前置检查，并把风险提示展示给用户。
+## 4. 需要额外配置的能力
 
-| Skill | 额外依赖 | 重建检查 |
-|---|---|---|
-| `web-access` | Node.js 22+、Chrome remote debugging、CDP Proxy、本地浏览器权限 | 安装后运行 skill 自带依赖检查脚本；确认 Chrome 已允许 remote debugging；使用真实浏览器登录态前提醒账号风控风险 |
-| `caveman` 系列 | 无特殊运行时；可选 Codex plugin 集成 | skill 版本用 `npx skills add JuliusBrussee/caveman --yes --global` 安装；plugin 版本需 Codex 插件市场识别本地 `marketplace.json` |
+| 名称 | 类型 | 额外依赖 | 重建检查 |
+|---|---|---|---|
+| `web-access` | skill | Node.js 22+、Chrome remote debugging、CDP proxy 或同类桥接 | 安装后检查浏览器调试端口、登录态风险和本地代理是否正常 |
+| `caveman` 系列 | skill | 无强制运行时；可选 Codex plugin 集成 | Codex app 优先使用 skill 版本；支持本地 marketplace 的 IDE 中可再安装 plugin |
+| `zotero-mcp` | MCP | Python 3.10+、Zotero 7+、Codex 自定义 MCP 支持 | 检查 Zotero 本体、Local API、数据库可访问性和语义索引状态 |
 
-`web-access` 的完整浏览器模式会连接本机 Chrome，并可能使用已有登录态操作网页。只在可信设备和可信 Agent 环境中启用，不要把 CDP 调试端口暴露给不可信网络。
+## 5. `zotero-mcp` 参考配置
 
-`caveman` 仓库同时提供 Codex plugin 和多个 skill。跨设备重建时，Codex app 优先安装 skill 版本；如果在支持插件市场的 IDE 环境中使用，再按仓库 README 安装 plugin。
+### 最小可用配置
 
-## 使用 `skill-installer`
+直接使用可执行文件：
 
-当 skill 来自公开 GitHub 仓库时，可以使用 Codex 预装的 `skill-installer`，或参考其安装逻辑。
+```toml
+[mcp_servers.zotero]
+command = "zotero-mcp"
 
-示例：
-
-```bash
-scripts/install-skill-from-github.py --repo openai/skills --path skills/.curated/<skill-name>
+[mcp_servers.zotero.env]
+ZOTERO_LOCAL = "true"
+PYTHONUTF8 = "1"
 ```
 
-如果需要指定版本：
+如果环境里更稳定的是 Python 模块方式，也可以使用：
 
-```bash
-scripts/install-skill-from-github.py --repo <owner>/<repo> --ref <commit-or-tag> --path <path-to-skill>
+```toml
+[mcp_servers.zotero]
+command = "<python>"
+args = ["-m", "zotero_mcp"]
+
+[mcp_servers.zotero.env]
+ZOTERO_LOCAL = "true"
+PYTHONUTF8 = "1"
 ```
 
-安装后通常需要重启 Codex 才能识别新 skill。
+### 语义搜索依赖
 
-## 手动创建自定义 Skill
+```bash
+pip install --user "zotero-mcp-server[semantic]"
+```
+
+### 首次建立索引
+
+推荐直接建立全文索引：
+
+```bash
+zotero-mcp update-db --fulltext
+```
+
+需要完全重建时：
+
+```bash
+zotero-mcp update-db --force-rebuild --fulltext
+```
+
+### `zotero-mcp` 常见注意事项
+
+- 如果只做语义索引更新，优先使用本地数据库路径，稳定性通常高于依赖 Local API 的在线读取。
+- 如果要在搜索结果里继续拉取完整 Zotero 条目详情，最好让 Zotero 处于运行状态，并启用 Local API。
+- 如果 Zotero 使用自定义数据目录，确保 `zotero-mcp` 进程能解析到真实的 `zotero.sqlite`。必要时应显式配置数据库路径，或使用单独 wrapper 统一运行环境。
+- 在部分 Windows 环境中，`localhost` 可能受到代理或 IPv6 解析影响；本地 API 不稳定时，优先检查是否需要改用 `127.0.0.1`。
+
+## 6. 手动创建自定义 Skill
 
 一个 skill 至少需要：
 
@@ -95,7 +131,7 @@ scripts/install-skill-from-github.py --repo <owner>/<repo> --ref <commit-or-tag>
 └── assets/
 ```
 
-`SKILL.md` 必须包含 YAML front matter：
+`SKILL.md` 需要包含 YAML front matter：
 
 ```markdown
 ---
@@ -108,69 +144,11 @@ description: Clear description of what the skill does and exactly when Codex sho
 Core workflow and concise instructions.
 ```
 
-关键要求：
+## 7. 提交前隐私检查
 
-| 项目 | 要求 |
-|---|---|
-| `name` | 与文件夹名一致；只使用小写字母、数字和连字符 |
-| `description` | 说明 skill 做什么、什么时候应该被触发 |
-| 正文 | 只写触发后才需要的核心流程 |
-| `references/` | 放详细背景、长文档、规范或 schema |
-| `scripts/` | 放稳定、重复、容易出错的自动化步骤 |
-| `assets/` | 放模板、图片、字体、样例文件等输出资源 |
+公开文档中不要出现：
 
-## 目录扫描规则
-
-一个 skill 是一个包含 `SKILL.md` 的目录。当前 Codex 源码会在 skill root 下递归扫描 `SKILL.md`，但为了兼容安装器、文档示例和人工维护，建议优先采用扁平结构：
-
-```text
-skills/
-├── skill-a/
-│   └── SKILL.md
-└── skill-b/
-    └── SKILL.md
-```
-
-如果一组方法高度绑定，也可以做成一个大 skill：
-
-```text
-skills/
-└── qiushi-methods/
-    ├── SKILL.md
-    └── references/
-        ├── investigation-first.md
-        └── contradiction-analysis.md
-```
-
-## 公开清单维护
-
-每次新增 skill 后，更新：
-
-| 文件 | 需要更新的内容 |
-|---|---|
-| `skills-inventory.md` | 分类、含义、触发方式、来源、复现提示 |
-| `rebuild-guide.md` | 如果引入新的安装方式或位置，补充步骤 |
-| `manifests/public-skill-index.example.json` | 如果需要机器可读索引，补充示例字段 |
-
-## 隐私检查
-
-提交前检查文档中不要包含：
-
-| 类型 | 示例 |
-|---|---|
-| 个人路径 | 用户名、盘符绝对路径、主目录绝对路径 |
-| 非公开地址 | 内网地址、需要授权访问的 URL |
-| 凭据 | 访问令牌、会话凭据、登录凭据 |
-| 设备信息 | 机器名、安装 ID、本地会话路径 |
-| 第三方完整内容 | 未确认许可的完整 `SKILL.md`、脚本、模板或资源 |
-
-可使用类似命令做文本扫描：
-
-```powershell
-$path = 'Codex-Skill'
-$patterns = @('<local-user-name>', '<absolute-local-path>', '<login-placeholder>')
-
-foreach ($pattern in $patterns) {
-  Select-String -Path "$path/**/*.md", "$path/**/*.json" -Pattern $pattern -SimpleMatch
-}
-```
+- 用户名、设备名、绝对本机路径
+- 内网地址、私有仓库地址、登录态信息
+- token、cookie、API key、会话凭据
+- 未确认许可的第三方完整内容
